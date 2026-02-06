@@ -27,4 +27,4 @@ film_sama = set(film_kamu) & set(film_teman)
 persentase = (len(film_sama) / 5) * 100
 
 # Output
-print(f"\nKesukaan Film kalian yang sama sebesar {persentase:.1f}%")
+print(f"\nKesukaan Film kalian yang sama sebesar {persentase}%")
