@@ -1,0 +1,1 @@
+SHOW DATABASES LIKE 'rental_mobil_db';
