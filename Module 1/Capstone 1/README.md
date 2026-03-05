@@ -8,7 +8,8 @@ Aplikasi terminal Python untuk manajemen data rental mobil berbasis MySQL.
 - Tambah data rental baru dengan validasi input.
 - Statistik rental (total transaksi, pendapatan, mean, median, mobil terlaris).
 - Visualisasi data (pie, bar, histogram).
-- Lihat daftar jenis mobil, metode pembayaran, dan tambah 10 data dummy.
+- Lihat daftar jenis mobil & metode pembayaran
+- Tambah 10 data dummy.
 
 ## Instalasi singkat
 
@@ -25,6 +26,10 @@ Aplikasi terminal Python untuk manajemen data rental mobil berbasis MySQL.
    ```powershell
    python -m pip install mysql-connector-python numpy pandas matplotlib
    ```
+   - `mysql-connector-python`: koneksi Python ke MySQL (connect, query, commit).
+   - `numpy`: bantu perhitungan numerik (contoh median di statistik).
+   - `pandas`: olah data tabular ke `DataFrame` untuk analisis/tampilan data.
+   - `matplotlib`: membuat visualisasi grafik (pie, bar, histogram).
 
 ## Menjalankan aplikasi
 
