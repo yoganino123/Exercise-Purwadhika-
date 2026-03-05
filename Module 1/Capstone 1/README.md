@@ -18,10 +18,14 @@ Aplikasi terminal Python untuk manajemen data rental mobil berbasis MySQL.
    cd "Module 1/Capstone 1"
    ```
 2. Buat dan aktifkan virtual environment:
+
    ```powershell
    python -m venv .venv
    .\.venv\Scripts\activate
    ```
+
+   - Tujuannya agar dependency terpasang lokal di project ini, bukan secara global di sistem.
+
 3. Install dependency:
 
    ```powershell
