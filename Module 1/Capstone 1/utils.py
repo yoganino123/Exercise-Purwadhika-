@@ -1,6 +1,8 @@
 import os
 from datetime import datetime
 
+from config import ensure_env_file
+
 
 # Fungsi untuk membersihkan layar terminal (opsional)
 def clear_screen():
@@ -83,36 +85,37 @@ def input_db_credentials(config):
     config["user"] = user
     config["password"] = password
 
-    if save_db_config_to_file(config):
-        print("Credential berhasil diperbarui dan disimpan ke config.py.")
+    if save_db_config_to_env(config):
+        print("Credential berhasil diperbarui dan disimpan ke .env.")
     else:
-        print("Credential berhasil diperbarui (runtime), tapi gagal disimpan ke file.")
+        print("Credential berhasil diperbarui (runtime), tapi gagal disimpan ke .env.")
 
 
-# Fungsi untuk menyimpan DB_CONFIG terbaru ke file config.py
-def save_db_config_to_file(config, config_file_path=None):
+# Fungsi untuk menyimpan DB_CONFIG terbaru ke file .env
+def save_db_config_to_env(config, env_file_path=None):
     try:
-        if config_file_path is None:
-            config_file_path = os.path.join(os.path.dirname(__file__), "config.py")
+        if env_file_path is None:
+            env_file_path = os.path.join(os.path.dirname(__file__), ".env")
+
+        ensure_env_file(env_file_path)
 
         host = str(config.get("host", ""))
         user = str(config.get("user", ""))
         password = str(config.get("password", ""))
-        database = str(config.get("database", ""))
+        database = str(config.get("database", "rental_mobil_db"))
 
         content = (
-            "DB_CONFIG = {\n"
-            f"    \"host\": {host!r},\n"
-            f"    \"user\": {user!r},\n"
-            f"    \"password\": {password!r},\n"
-            f"    \"database\": {database!r},\n"
-            "}\n"
+            "# Konfigurasi database (auto-generated)\n"
+            f"DB_HOST={host}\n"
+            f"DB_USER={user}\n"
+            f"DB_PASSWORD={password}\n"
+            f"DB_DATABASE={database}\n"
         )
 
-        with open(config_file_path, "w", encoding="utf-8") as file:
+        with open(env_file_path, "w", encoding="utf-8") as file:
             file.write(content)
 
         return True
     except Exception as err:
-        print(f"Gagal menyimpan credential ke file config.py: {err}")
+        print(f"Gagal menyimpan credential ke file .env: {err}")
         return False

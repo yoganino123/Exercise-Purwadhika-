@@ -39,6 +39,12 @@ Aplikasi terminal Python untuk manajemen data rental mobil berbasis MySQL.
 python app.py
 ```
 
+## Konfigurasi Credential (.env)
+
+- Credential database disimpan di file `.env` (bukan di `config.py`).
+- Jika file `.env` belum ada, aplikasi akan membuat otomatis saat dijalankan.
+- Menu **Input Credential MySQL** akan memperbarui nilai `DB_HOST`, `DB_USER`, `DB_PASSWORD`, dan `DB_DATABASE` di `.env`.
+
 ## Flow Aplikasi
 
 1. Aplikasi mengecek koneksi ke server MySQL dan menyediakan menu untuk input kredensial MySQL dan test connection.
