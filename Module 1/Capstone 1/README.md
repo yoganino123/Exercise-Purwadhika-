@@ -13,35 +13,64 @@ Aplikasi terminal Python untuk manajemen data rental mobil berbasis MySQL.
 
 ## Instalasi singkat
 
+Tujuannya agar dependency terpasang lokal di project ini, bukan secara global di sistem.
+
+### Windows (PowerShell)
+
 1. Masuk ke folder project:
    ```powershell
    cd "Module 1/Capstone 1"
    ```
-2. Buat dan aktifkan virtual environment:
-
+2. Buat virtual environment:
    ```powershell
    python -m venv .venv
+   ```
+3. Aktifkan virtual environment:
+   ```powershell
    .\.venv\Scripts\activate
    ```
-
-   - Tujuannya agar dependency terpasang lokal di project ini, bukan secara global di sistem.
-
-3. Install dependency:
-
+4. Install dependency:
    ```powershell
    python -m pip install mysql-connector-python numpy pandas matplotlib
    ```
+5. Jalankan aplikasi:
+   ```powershell
+   python app.py
+   ```
 
-   - `mysql-connector-python`: koneksi Python ke MySQL (connect, query, commit).
-   - `numpy`: bantu perhitungan numerik (contoh median di statistik).
-   - `pandas`: olah data tabular ke `DataFrame` untuk analisis/tampilan data.
-   - `matplotlib`: membuat visualisasi grafik (pie, bar, histogram).
+### macOS (zsh)
 
-## Menjalankan aplikasi
+1. Masuk ke folder project:
+   ```bash
+   cd "Module 1/Capstone 1"
+   ```
+2. Buat virtual environment:
+   ```bash
+   python3 -m venv .venv
+   ```
+3. Aktifkan virtual environment:
+   ```bash
+   source .venv/bin/activate
+   ```
+4. Install dependency:
+   ```bash
+   python -m pip install mysql-connector-python numpy pandas matplotlib
+   ```
+5. Jalankan aplikasi:
+   ```bash
+   python app.py
+   ```
 
-```powershell
-python app.py
-```
+> Jika belum mengaktifkan virtual environment di macOS, jalankan aplikasi dengan:
+>
+> ```bash
+> .venv/bin/python app.py
+> ```
+
+- `mysql-connector-python`: koneksi Python ke MySQL (connect, query, commit).
+- `numpy`: bantu perhitungan numerik (contoh median di statistik).
+- `pandas`: olah data tabular ke `DataFrame` untuk analisis/tampilan data.
+- `matplotlib`: membuat visualisasi grafik (pie, bar, histogram).
 
 ## Konfigurasi Credential (.env)
 
