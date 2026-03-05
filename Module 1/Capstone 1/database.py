@@ -3,6 +3,8 @@ from queries import (
     CREATE_TABLE_RENTAL_MOBIL,
     DUMMY_RENTAL_DATA,
     INSERT_RENTAL_MOBIL,
+    SELECT_DISTINCT_JENIS_MOBIL,
+    SELECT_DISTINCT_METODE_PEMBAYARAN,
     SELECT_RENTAL_MOBIL_BASE,
     SHOW_DATABASES_LIKE,
     SHOW_TABLES_LIKE,
@@ -46,7 +48,12 @@ def connect_database(config, use_database=True):
         if use_database:
             connection_params["database"] = database_name
 
-        connection = mysql.connector.connect(**connection_params)
+        try:
+            connection = mysql.connector.connect(**connection_params)
+        except BaseException as err:
+            print(f"Koneksi database gagal: {err}")
+            return None
+
         if connection.is_connected():
             return connection
         return None
@@ -203,8 +210,38 @@ def get_rental_dataframe(connection, where_clause="", params=None, order_clause=
         query += f" ORDER BY {order_clause}"
 
     try:
-        df = pd.read_sql(query, connection, params=params)
+        cursor = connection.cursor()
+        cursor.execute(query, params)
+        rows = cursor.fetchall()
+        columns = [column[0] for column in cursor.description] if cursor.description else []
+        df = pd.DataFrame(rows, columns=columns)
         return df
     except Exception as err:
         print(f"Gagal membaca data: {err}")
         return pd.DataFrame()
+
+
+def get_distinct_jenis_mobil(connection):
+    try:
+        cursor = connection.cursor()
+        cursor.execute(SELECT_DISTINCT_JENIS_MOBIL)
+        return [row[0] for row in cursor.fetchall()]
+    except Error as err:
+        print(f"Gagal membaca data jenis mobil: {err}")
+        return []
+    except Exception as err:
+        print(f"Terjadi error saat membaca jenis mobil: {err}")
+        return []
+
+
+def get_distinct_metode_pembayaran(connection):
+    try:
+        cursor = connection.cursor()
+        cursor.execute(SELECT_DISTINCT_METODE_PEMBAYARAN)
+        return [row[0] for row in cursor.fetchall()]
+    except Error as err:
+        print(f"Gagal membaca data metode pembayaran: {err}")
+        return []
+    except Exception as err:
+        print(f"Terjadi error saat membaca metode pembayaran: {err}")
+        return []

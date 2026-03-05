@@ -1,7 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from database import get_rental_dataframe, insert_dummy_data
+from database import (
+    get_distinct_jenis_mobil,
+    get_distinct_metode_pembayaran,
+    get_rental_dataframe,
+    insert_dummy_data,
+)
 from queries import INSERT_RENTAL_MOBIL
 from utils import (
     get_date_input,
@@ -17,6 +22,30 @@ except ImportError:
     Error = Exception
 
 
+def format_console_table(df):
+    headers = ["(index)", *[str(column) for column in df.columns]]
+    rows = [
+        [str(row_index), *["" if value is None else str(value) for value in row]]
+        for row_index, row in enumerate(df.values.tolist())
+    ]
+
+    widths = []
+    for index, header in enumerate(headers):
+        cell_width = max((len(row[index]) for row in rows), default=0)
+        widths.append(max(len(header), cell_width))
+
+    def separator(char="-"):
+        return "+" + "+".join(char * (width + 2) for width in widths) + "+"
+
+    header_row = "| " + " | ".join(header.ljust(widths[i]) for i, header in enumerate(headers)) + " |"
+    body_rows = [
+        "| " + " | ".join(row[i].ljust(widths[i]) for i in range(len(headers))) + " |"
+        for row in rows
+    ]
+
+    return "\n".join([separator("-"), header_row, separator("="), *body_rows, separator("-")])
+
+
 # Fungsi untuk menampilkan data rental dengan filter dan sorting dinamis
 def read_data(connection):
     print("\n=== Lihat Data Rental ===")
@@ -27,13 +56,13 @@ def read_data(connection):
     try:
         filter_jenis = safe_input("Filter jenis mobil (kosongkan jika tidak): ").strip()
         if filter_jenis:
-            where_conditions.append("jenis_mobil = %s")
-            params.append(filter_jenis)
+            where_conditions.append("jenis_mobil LIKE %s")
+            params.append(f"%{filter_jenis}%")
 
         filter_metode = safe_input("Filter metode pembayaran (kosongkan jika tidak): ").strip()
         if filter_metode:
-            where_conditions.append("metode_pembayaran = %s")
-            params.append(filter_metode)
+            where_conditions.append("metode_pembayaran LIKE %s")
+            params.append(f"%{filter_metode}%")
 
         sort_choice = safe_input("Sorting total_bayar? (asc/desc/kosongkan): ").strip().lower()
         order_clause = ""
@@ -48,7 +77,7 @@ def read_data(connection):
             return
 
         print("\nData Rental Mobil:")
-        print(df.to_string(index=False))
+        print(format_console_table(df))
     except Exception as err:
         print(f"Terjadi error saat menampilkan data: {err}")
 
@@ -135,13 +164,14 @@ def show_visualization(connection):
         if df.empty:
             print("Belum ada data untuk divisualisasikan.")
             return
-
+        #
         fig, axes = plt.subplots(1, 3, figsize=(18, 5))
-
+        # Pie chart untuk proporsi jenis mobil
         jenis_counts = df["jenis_mobil"].value_counts()
         axes[0].pie(jenis_counts.values, labels=jenis_counts.index, autopct="%1.1f%%", startangle=90)
         axes[0].set_title("Proporsi Jenis Mobil")
 
+        # Bar chart untuk metode pembayaran
         metode_counts = df["metode_pembayaran"].value_counts()
         axes[1].bar(metode_counts.index, metode_counts.values)
         axes[1].set_title("Jumlah Transaksi per Metode Pembayaran")
@@ -149,6 +179,7 @@ def show_visualization(connection):
         axes[1].set_ylabel("Jumlah Transaksi")
         axes[1].tick_params(axis="x", rotation=30)
 
+        # Histogram untuk distribusi total bayar
         axes[2].hist(df["total_bayar"], bins=8)
         axes[2].set_title("Distribusi Total Bayar")
         axes[2].set_xlabel("Total Bayar")
@@ -160,6 +191,34 @@ def show_visualization(connection):
         print(f"Terjadi error saat visualisasi: {err}")
 
 
+def show_jenis_mobil(connection):
+    print("\n=== Data Jenis Mobil ===")
+    try:
+        jenis_mobil_list = get_distinct_jenis_mobil(connection)
+        if not jenis_mobil_list:
+            print("Belum ada data jenis mobil.")
+            return
+
+        for index, jenis_mobil in enumerate(jenis_mobil_list, start=1):
+            print(f"{index}. {jenis_mobil}")
+    except Exception as err:
+        print(f"Terjadi error saat menampilkan jenis mobil: {err}")
+
+
+def show_metode_pembayaran(connection):
+    print("\n=== Data Metode Pembayaran ===")
+    try:
+        metode_list = get_distinct_metode_pembayaran(connection)
+        if not metode_list:
+            print("Belum ada data metode pembayaran.")
+            return
+
+        for index, metode in enumerate(metode_list, start=1):
+            print(f"{index}. {metode}")
+    except Exception as err:
+        print(f"Terjadi error saat menampilkan metode pembayaran: {err}")
+
+
 # Fungsi untuk menampilkan menu utama dan menjalankan fitur-fitur utama
 def show_main_menu(connection):
     while True:
@@ -168,10 +227,12 @@ def show_main_menu(connection):
         print("2. Tambah Data Rental")
         print("3. Statistik Rental")
         print("4. Visualisasi Data")
-        print("5. Tambah Dummy Data (10)")
-        print("6. Exit")
+        print("5. Lihat Data Jenis Mobil")
+        print("6. Lihat Data Metode Pembayaran")
+        print("7. Tambah Dummy Data (10)")
+        print("8. Exit")
 
-        choice = get_menu_choice("Pilih menu (1-6): ", {1, 2, 3, 4, 5, 6})
+        choice = get_menu_choice("Pilih menu (1-8): ", {1, 2, 3, 4, 5, 6, 7, 8})
 
         if choice == 1:
             read_data(connection)
@@ -182,11 +243,15 @@ def show_main_menu(connection):
         elif choice == 4:
             show_visualization(connection)
         elif choice == 5:
+            show_jenis_mobil(connection)
+        elif choice == 6:
+            show_metode_pembayaran(connection)
+        elif choice == 7:
             confirm = safe_input("Tambahkan 10 data dummy sekarang? (y/n): ").strip().lower()
             if confirm == "y":
                 insert_dummy_data(connection)
             else:
                 print("Tambah dummy data dibatalkan.")
-        elif choice == 6:
+        elif choice == 8:
             print("Keluar dari menu utama.")
             break

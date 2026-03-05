@@ -3,7 +3,6 @@ from database import (
     connect_database,
     create_database,
     create_table,
-    insert_dummy_data,
     is_database_exists,
     is_table_exists,
     test_connection,
@@ -12,10 +11,15 @@ from features import show_main_menu
 from utils import get_menu_choice, input_db_credentials
 
 
-# Fungsi untuk alur startup sesuai requirement (koneksi, setup DB/table, lalu masuk menu utama)
+# Fungsi untuk cek database  (koneksi, setup DB/table, lalu masuk menu utama)
 def start_application():
     while True:
-        server_connection = connect_database(DB_CONFIG, use_database=False)
+        # Cek koneksi database
+        try:
+            server_connection = connect_database(DB_CONFIG, use_database=False)
+        except Exception as err:
+            print(f"Koneksi database gagal: {err}")
+            server_connection = None
 
         if server_connection is None:
             print("\n=== Koneksi Database Gagal ===")
@@ -35,7 +39,7 @@ def start_application():
                 print("Program selesai.")
                 break
             continue
-
+        # Jika koneksi server berhasil, lanjut cek database dan table
         try:
             if server_connection.is_connected():
                 server_connection.close()
@@ -65,31 +69,32 @@ def start_application():
                 break
             continue
 
-        connection = connect_database(DB_CONFIG, use_database=True)
+        try:
+            connection = connect_database(DB_CONFIG, use_database=True)
+        except Exception as err:
+            print(f"Koneksi database gagal: {err}")
+            connection = None
+
         if connection is None:
             print("\n=== Koneksi Database Gagal ===")
             continue
-
+        # Jika koneksi database berhasil, lanjut cek table rental_mobil
         try:
             print("\n=== Aplikasi Rental Mobil ===")
             if not is_table_exists(connection, "rental_mobil"):
                 print("\n=== Table rental_mobil belum ada ===")
                 print("1. Create Table")
-                print("2. Insert Dummy Data")
-                print("3. Exit")
+                print("2. Exit")
 
-                choice = get_menu_choice("Pilih menu (1-3): ", {1, 2, 3})
+                choice = get_menu_choice("Pilih menu (1-2): ", {1, 2})
 
                 if choice == 1:
                     create_table(connection)
                 elif choice == 2:
-                    created = create_table(connection)
-                    if created:
-                        insert_dummy_data(connection)
-                elif choice == 3:
                     print("Program selesai.")
                     break
             else:
+                # Jika table sudah ada, langsung masuk menu utama
                 show_main_menu(connection)
                 print("Program selesai.")
                 break
@@ -102,6 +107,7 @@ def start_application():
                 pass
 
 
-# Blok utama program
+# main
+# fungsi if __name__ == "__main__" untuk memastikan start_application() hanya dijalankan saat app.py dieksekusi langsung, bukan saat diimport sebagai modul
 if __name__ == "__main__":
     start_application()

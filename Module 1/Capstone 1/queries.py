@@ -30,6 +30,16 @@ SELECT_RENTAL_MOBIL_BASE = (
     "total_bayar, metode_pembayaran, tanggal_sewa FROM rental_mobil"
 )
 
+SELECT_DISTINCT_JENIS_MOBIL = (
+    "SELECT DISTINCT jenis_mobil FROM rental_mobil "
+    "WHERE jenis_mobil IS NOT NULL AND jenis_mobil <> '' ORDER BY jenis_mobil ASC"
+)
+
+SELECT_DISTINCT_METODE_PEMBAYARAN = (
+    "SELECT DISTINCT metode_pembayaran FROM rental_mobil "
+    "WHERE metode_pembayaran IS NOT NULL AND metode_pembayaran <> '' ORDER BY metode_pembayaran ASC"
+)
+
 SHOW_DATABASES_LIKE = "SHOW DATABASES LIKE %s"
 SHOW_TABLES_LIKE = "SHOW TABLES LIKE %s"
 

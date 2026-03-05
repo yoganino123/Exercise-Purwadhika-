@@ -101,7 +101,6 @@ def save_db_config_to_file(config, config_file_path=None):
         database = str(config.get("database", ""))
 
         content = (
-            "# Konfigurasi default database MySQL (bisa diubah lewat menu input credential)\n"
             "DB_CONFIG = {\n"
             f"    \"host\": {host!r},\n"
             f"    \"user\": {user!r},\n"
