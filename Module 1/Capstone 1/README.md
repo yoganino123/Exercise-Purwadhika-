@@ -12,13 +12,19 @@ Aplikasi terminal Python untuk manajemen data rental mobil berbasis MySQL.
 
 ## Instalasi singkat
 
-```powershell
-# dari folder root project
-cd "Module 1/Capstone 1"
-python -m venv .venv
-.\.venv\Scripts\activate
-python -m pip install mysql-connector-python numpy pandas matplotlib
-```
+1. Masuk ke folder project:
+   ```powershell
+   cd "Module 1/Capstone 1"
+   ```
+2. Buat dan aktifkan virtual environment:
+   ```powershell
+   python -m venv .venv
+   .\.venv\Scripts\activate
+   ```
+3. Install dependency:
+   ```powershell
+   python -m pip install mysql-connector-python numpy pandas matplotlib
+   ```
 
 ## Menjalankan aplikasi
 
