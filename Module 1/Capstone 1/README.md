@@ -1,6 +1,6 @@
 # Rental Mobil App (Terminal)
 
-Aplikasi terminal Python untuk manajemen data rental mobil berbasis MySQL.
+Aplikasi terminal Python untuk manajemen data rental mobil.
 
 ## Menu Utama Rental Mobil
 
@@ -10,6 +10,28 @@ Aplikasi terminal Python untuk manajemen data rental mobil berbasis MySQL.
 - Visualisasi data (pie, bar, histogram).
 - Lihat daftar jenis mobil & metode pembayaran
 - Tambah 10 data dummy.
+
+## Module / Library
+
+- `mysql-connector-python`: koneksi Python ke MySQL (connect, query, commit).
+- `numpy`: bantu perhitungan numerik (contoh median di statistik).
+- `pandas`: olah data tabular ke `DataFrame` untuk analisis/tampilan data.
+- `matplotlib`: membuat visualisasi grafik (pie, bar, histogram).
+
+## Konfigurasi Credential (.env)
+
+- Credential database disimpan di file `.env`.
+- Jika file `.env` belum ada, aplikasi akan membuat otomatis saat dijalankan.
+- Menu **Input Credential MySQL** akan memperbarui nilai `DB_HOST`, `DB_USER`, `DB_PASSWORD`, dan `DB_DATABASE` di `.env`.
+
+## Flow Aplikasi
+
+1. Aplikasi mengecek koneksi ke server MySQL dan menyediakan menu untuk input kredensial MySQL dan test connection.
+2. Jika database belum ada, tersedia menu untuk membuat database.
+3. Jika tabel `rental_mobil` belum ada, teradpart menu:
+   - `1. Create Table`
+   - `2. Exit`
+4. Jika tabel sudah ada, aplikasi akan masuk ke menu utama rental.
 
 ## Instalasi singkat
 
@@ -66,23 +88,3 @@ Tujuannya agar dependency terpasang lokal di project ini, bukan secara global di
 > ```bash
 > .venv/bin/python app.py
 > ```
-
-- `mysql-connector-python`: koneksi Python ke MySQL (connect, query, commit).
-- `numpy`: bantu perhitungan numerik (contoh median di statistik).
-- `pandas`: olah data tabular ke `DataFrame` untuk analisis/tampilan data.
-- `matplotlib`: membuat visualisasi grafik (pie, bar, histogram).
-
-## Konfigurasi Credential (.env)
-
-- Credential database disimpan di file `.env` (bukan di `config.py`).
-- Jika file `.env` belum ada, aplikasi akan membuat otomatis saat dijalankan.
-- Menu **Input Credential MySQL** akan memperbarui nilai `DB_HOST`, `DB_USER`, `DB_PASSWORD`, dan `DB_DATABASE` di `.env`.
-
-## Flow Aplikasi
-
-1. Aplikasi mengecek koneksi ke server MySQL dan menyediakan menu untuk input kredensial MySQL dan test connection.
-2. Jika database belum ada, tersedia menu untuk membuat database.
-3. Jika tabel `rental_mobil` belum ada, teradpart menu:
-   - `1. Create Table`
-   - `2. Exit`
-4. Jika tabel sudah ada, aplikasi akan masuk ke menu utama rental.
