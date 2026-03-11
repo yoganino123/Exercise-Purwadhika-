@@ -18,6 +18,15 @@ Aplikasi terminal Python untuk manajemen data rental mobil.
 - `pandas`: olah data tabular ke `DataFrame` untuk analisis/tampilan data.
 - `matplotlib`: membuat visualisasi grafik (pie, bar, histogram).
 
+## Struktur Project (Modular) :
+
+- app.py: entry point aplikasi.
+- config.py: konfigurasi database dari `.env`.
+- database.py: koneksi dan operasi database.
+- features.py: implementasi menu utama.
+- queries.py + query/: kumpulan SQL query.
+- utils.py: helper validasi input.
+
 ## Konfigurasi Credential (.env)
 
 - Credential database disimpan di file `.env`.
