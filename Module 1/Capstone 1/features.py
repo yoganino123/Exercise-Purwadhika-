@@ -9,41 +9,18 @@ from database import (
 )
 from queries import INSERT_RENTAL_MOBIL
 from utils import (
+    format_console_table,
     get_date_input,
     get_menu_choice,
     get_non_empty_input,
     get_non_negative_int,
     safe_input,
 )
-
+# Try Catch untuk import mysql.connector.Error agar tidak error jika library mysql-connector-python belum terpasang
 try:
     from mysql.connector import Error
 except ImportError:
     Error = Exception
-
-
-def format_console_table(df):
-    headers = ["(index)", *[str(column) for column in df.columns]]
-    rows = [
-        [str(row_index), *["" if value is None else str(value) for value in row]]
-        for row_index, row in enumerate(df.values.tolist())
-    ]
-
-    widths = []
-    for index, header in enumerate(headers):
-        cell_width = max((len(row[index]) for row in rows), default=0)
-        widths.append(max(len(header), cell_width))
-
-    def separator(char="-"):
-        return "+" + "+".join(char * (width + 2) for width in widths) + "+"
-
-    header_row = "| " + " | ".join(header.ljust(widths[i]) for i, header in enumerate(headers)) + " |"
-    body_rows = [
-        "| " + " | ".join(row[i].ljust(widths[i]) for i in range(len(headers))) + " |"
-        for row in rows
-    ]
-
-    return "\n".join([separator("-"), header_row, separator("="), *body_rows, separator("-")])
 
 
 # Fungsi untuk menampilkan data rental dengan filter dan sorting dinamis

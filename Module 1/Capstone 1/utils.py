@@ -74,6 +74,30 @@ def get_date_input(prompt):
             print(f"Terjadi kesalahan input: {err}")
 
 
+def format_console_table(df):
+    headers = ["(index)", *[str(column) for column in df.columns]]
+    rows = [
+        [str(row_index), *["" if value is None else str(value) for value in row]]
+        for row_index, row in enumerate(df.values.tolist())
+    ]
+
+    widths = []
+    for index, header in enumerate(headers):
+        cell_width = max((len(row[index]) for row in rows), default=0)
+        widths.append(max(len(header), cell_width))
+
+    def separator(char="-"):
+        return "+" + "+".join(char * (width + 2) for width in widths) + "+"
+
+    header_row = "| " + " | ".join(header.ljust(widths[i]) for i, header in enumerate(headers)) + " |"
+    body_rows = [
+        "| " + " | ".join(row[i].ljust(widths[i]) for i in range(len(headers))) + " |"
+        for row in rows
+    ]
+
+    return "\n".join([separator("-"), header_row, separator("="), *body_rows, separator("-")])
+
+
 # Fungsi untuk memperbarui credential MySQL dari input user
 def input_db_credentials(config):
     print("\n=== Input Credential MySQL ===")
