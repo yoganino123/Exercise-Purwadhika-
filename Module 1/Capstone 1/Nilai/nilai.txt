@@ -1,0 +1,65 @@
+Hasil Penilaian Capstone 1
+April 5, 2026 11:08 AM
+
+from : "Rusnandi Fikri" <rusnandifikri96@gmail.com>; 
+to : dino@woorifinance.co.id
+
+Penilaian Capstone 1
+Nama : Rahardian Yoganino Pradipta
+Student ID: JCAIEAH-003 -008
+
+Berikut ini terlampir detail penilaian capstone 1 yang dikoreksi oleh
+mentor JCAIEAH-003 (Rusnandi Fikri).
+
+Detail point penilaian peserta:
+1. Video Penjelasan : 82
+2. Fitur Read Table (15%) : 77
+3. Fitur Show Statistik (15%) : 79
+4. Fitur Data Visualization (20%) : 79
+5. Fitur Add Data (15%) : 83
+6. User Experience (10%) : 83
+
+Deskripsi komentar pengerjaan project:
+1. Penjelasan cukup bagus, clear, dan memuat semua kebutuhan baik dari
+code maupun hasil output aplikasinya
+2. Fitur read table berjalan dengan baik, table di SQL terbaca semua
+dengan kolom yang tepat.
+3. Fitur statistik sudah mampu menampilkan nilai-nilai statistik yang
+ada pada data.
+4. Fitur data visualization sudah menampilkan beberapa visualisasi
+informasi dari data yang ada di database.
+5. Fitur add data berjalan dengan baik, data yang ditambahkan sudah
+masuk ke database dan tidak ada error.
+6. User experience-nya bagus dan tidak ada error.
+
+Komentar dan saran pengerjaan project:
+1. Penjelasan sudah bagus dan menyeluruh. Namun mengingat waktu
+standar yang diberikan 10-15 menit, maka video yang dibuat masih
+menyisakan banyak waktu tersisa yang dapat dimanfaatkan untuk
+memberikan penjelasan detail lainnya terhadap project yang dikerjakan.
+2. Fitur read table dapat ditambahkan error handling, contohnya
+memunculkan pesan error apabila memanggil nama table yang salah atau
+koneksi database nya bermasalah.
+3. Fitur show statistik dapat ditambahkan nilai statistik lainnya
+(tidak hanya rata-rata saja).
+4. Fitur data visualization yang ada hanya menampilkan visualisasi
+pada univariate analysis. Selanjutnya dapat ditingkatkan dengan
+menambahkan visualisasi data pada bivariate atau multi-variate
+analysis.
+5. Fitur add data dapat dilengkapi dengan error handling apabila ada
+kasus studentID atau primary key table yang duplicate saat
+penginputan.
+6. UX dapat ditingkatkan lagi dengan membuat validasi tambahan misal
+pada fitur visualisasi, dapat ditanya dulu ke user mau menampilkan
+visualisasi kolom apa.
+
+Nilai Akhir : 80.45
+
+Sekian informasi penilaian Capstone 1. Apabila ada pertanyaan lebih
+lanjut silahkan menghubungi mentor terkait. Terima kasih.
+
+
+Regards,
+
+Rusnandi Fikri
+Mentor JCAIEAH-003s
