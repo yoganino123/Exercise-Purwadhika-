@@ -109,11 +109,14 @@ __pycache__/
 
 ### 3.4 Dapatkan API Keys
 
-**OpenAI API Key:**
+> Untuk panduan lengkap mendapatkan OpenAI API Key (buat akun, top-up kredit, buat key, estimasi biaya, dan keamanan), lihat: **[SETUP_OPENAI.md](SETUP_OPENAI.md)**
+
+**OpenAI API Key — ringkasan:**
 
 1. Buka https://platform.openai.com/api-keys
-2. Klik **"Create new secret key"**
-3. Simpan key-nya (hanya tampil sekali)
+2. Daftar / login → tambahkan kredit minimal $5 USD di menu **Billing**
+3. Klik **"+ Create new secret key"** → beri nama `capstone-3-project`
+4. Salin key (`sk-proj-xxx...`) — **hanya tampil sekali!**
 
 **Qdrant Cloud:**
 
@@ -786,11 +789,15 @@ Nilai 75 adalah basis minimum (mengikuti contoh). Untuk nilai lebih tinggi:
 
 ### Streamlit (melebihi minimum)
 
-- Tampilan UI yang menarik dengan custom CSS
-- Tambahkan **fitur filter/pencarian** langsung di UI
-- Visualisasi data (chart rating, distribusi genre, dll)
-- Mode **streaming** untuk jawaban agent (terlihat live)
-- **Authentication** sederhana (password page)
+Tampilan UI yang menarik dengan custom CSS
+
+Tambahkan **fitur filter/pencarian** langsung di UI
+
+Visualisasi data (chart rating, distribusi genre, dll)
+
+Mode **streaming** untuk jawaban agent (terlihat live)
+
+**Authentication** sederhana (password page)
 
 ---
 
