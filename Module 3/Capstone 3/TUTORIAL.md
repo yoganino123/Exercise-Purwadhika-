@@ -1,10 +1,12 @@
 # Tutorial Lengkap Capstone Project Module 3
+
 ## RAG Chatbot Agent dengan LangChain, Qdrant & Streamlit
 
 ---
 
 ## Daftar Isi
-1. [Overview & Poin Penilaian](#1-overview--poin-penilaian)
+
+1. [Overview &amp; Poin Penilaian](#1-overview--poin-penilaian)
 2. [Pembagian Dataset](#2-pembagian-dataset)
 3. [Setup Environment](#3-setup-environment)
 4. [Struktur Project](#4-struktur-project)
@@ -30,14 +32,14 @@ Capstone Project Module 3 meminta kamu membangun sebuah **mini aplikasi chatbot*
 - Memiliki **chat history** minimal 3 percakapan ke belakang
 - Di-deploy ke **Streamlit Community Cloud**
 
-| Komponen | Bobot |
-|---|---|
-| Video Penjelasan | 25% |
-| Pembuatan Vector Database | 10% |
-| Pembuatan RAG Tool | 10% |
-| Pembuatan Agent | 20% |
-| Penyusunan Prompt | 10% |
-| Integrasi Dengan Streamlit | 25% |
+| Komponen                   | Bobot |
+| -------------------------- | ----- |
+| Video Penjelasan           | 25%   |
+| Pembuatan Vector Database  | 10%   |
+| Pembuatan RAG Tool         | 10%   |
+| Pembuatan Agent            | 20%   |
+| Penyusunan Prompt          | 10%   |
+| Integrasi Dengan Streamlit | 25%   |
 
 > **Catatan:** Jika kamu hanya mengikuti contoh (basis minimum), nilai maksimum tiap komponen adalah **75**. Tambahkan kompleksitas kreatif untuk nilai lebih tinggi.
 
@@ -45,21 +47,22 @@ Capstone Project Module 3 meminta kamu membangun sebuah **mini aplikasi chatbot*
 
 ## 2. Pembagian Dataset
 
-| Nama | Dataset |
-|---|---|
-| Andy Kurniawan | IMDB Movie |
-| Yusuf Averroes Sungkar | Resume |
-| Salomo Agus Ardianto Purba | IMDB Movie |
-| Vannesa Lam | IMDB Movie |
-| Indri Anjar Kartika Sari | IMDB Movie |
-| Ahmad Zidan Alfa Robby | IMDB Movie |
-| Ade Reni Hutabarat | Resume |
-| Rahardian Yoganino Pradipta | IMDB Movie |
-| Nabeel Farvez Fayzulhaq | Resume |
-| Ivan Dwi Hascaryo Ardynugraha | Resume |
-| Ikhsani Taufiqullah Hasan | Resume |
+| Nama                          | Dataset    |
+| ----------------------------- | ---------- |
+| Andy Kurniawan                | IMDB Movie |
+| Yusuf Averroes Sungkar        | Resume     |
+| Salomo Agus Ardianto Purba    | IMDB Movie |
+| Vannesa Lam                   | IMDB Movie |
+| Indri Anjar Kartika Sari      | IMDB Movie |
+| Ahmad Zidan Alfa Robby        | IMDB Movie |
+| Ade Reni Hutabarat            | Resume     |
+| Rahardian Yoganino Pradipta   | IMDB Movie |
+| Nabeel Farvez Fayzulhaq       | Resume     |
+| Ivan Dwi Hascaryo Ardynugraha | Resume     |
+| Ikhsani Taufiqullah Hasan     | Resume     |
 
 ### Dataset yang Tersedia:
+
 - **IMDB Movie** → `Dataset/IMDB Movie/imdb_top_1000.csv`
   - Kolom: `Series_Title`, `Released_Year`, `Certificate`, `Runtime`, `Genre`, `IMDB_Rating`, `Overview`, `Meta_score`, `Director`, `Star1-4`, `No_of_votes`, `Gross`
 - **Resume** → `Dataset/RESUME/Resume.csv`
@@ -107,11 +110,13 @@ __pycache__/
 ### 3.4 Dapatkan API Keys
 
 **OpenAI API Key:**
+
 1. Buka https://platform.openai.com/api-keys
 2. Klik **"Create new secret key"**
 3. Simpan key-nya (hanya tampil sekali)
 
 **Qdrant Cloud:**
+
 1. Buka https://cloud.qdrant.io/
 2. Buat akun / login
 3. Klik **"Create Cluster"** → pilih Free Tier
@@ -146,11 +151,13 @@ Capstone 3/
 Vector Database adalah tempat menyimpan data dalam bentuk **embedding** (vektor numerik). Ketika user bertanya, query-nya diubah jadi vektor lalu dicari dokumen yang paling mirip.
 
 ### Alur:
+
 ```
 CSV Data → Teks per baris → OpenAI Embedding → Qdrant Cloud
 ```
 
 ### Langkah di Qdrant Cloud:
+
 1. Login ke https://cloud.qdrant.io/
 2. Buat cluster baru (Free tier: 1 cluster, 1GB)
 3. Buat **Collection** baru:
@@ -339,15 +346,16 @@ def search_movie_info(query: str) -> str:
     results = qdrant.similarity_search(query, k=5)
     if not results:
         return "Tidak ditemukan informasi yang relevan."
-    
+
     output = []
     for doc in results:
         output.append(doc.page_content)
-    
+
     return "\n\n---\n\n".join(output)
 ```
 
 ### Tips RAG Tool:
+
 - Deskripsi tool (`docstring`) sangat penting — agent membaca deskripsi ini untuk memutuskan kapan tool dipakai
 - `k=5` artinya ambil 5 dokumen paling mirip. Bisa dinaikkan untuk hasil lebih lengkap
 - Bisa tambahkan filter metadata: `qdrant.similarity_search(query, k=5, filter={"genre": "Action"})`
@@ -391,38 +399,38 @@ agent = create_react_agent(
 def chat_agent(user_question: str, chat_history: list) -> dict:
     """
     Fungsi utama untuk memanggil agent.
-    
+
     Args:
         user_question: Pertanyaan dari user
         chat_history: List pesan sebelumnya [{"role": "human/ai", "content": "..."}]
-    
+
     Returns:
         dict berisi answer, token usage, tool messages
     """
     # Susun messages: system + history + pertanyaan baru
     messages = [SystemMessage(content=SYSTEM_PROMPT)]
-    
+
     # Tambahkan history (maks 6 pesan terakhir = 3 percakapan)
     for msg in chat_history[-6:]:
         if msg["role"] == "Human":
             messages.append(HumanMessage(content=msg["content"]))
         else:
             messages.append(AIMessage(content=msg["content"]))
-    
+
     # Tambahkan pertanyaan terbaru
     messages.append(HumanMessage(content=user_question))
-    
+
     # Jalankan agent
     result = agent.invoke({"messages": messages})
-    
+
     # Ambil jawaban
     answer = result["messages"][-1].content
-    
+
     # Hitung token usage
     total_input_tokens = 0
     total_output_tokens = 0
     tool_messages = []
-    
+
     for message in result["messages"]:
         # Hitung token
         if hasattr(message, "response_metadata"):
@@ -433,17 +441,17 @@ def chat_agent(user_question: str, chat_history: list) -> dict:
             elif "token_usage" in meta:
                 total_input_tokens += meta["token_usage"].get("prompt_tokens", 0)
                 total_output_tokens += meta["token_usage"].get("completion_tokens", 0)
-        
+
         # Kumpulkan tool messages
         from langchain_core.messages import ToolMessage
         if isinstance(message, ToolMessage):
             tool_messages.append(message.content)
-    
+
     # Estimasi biaya (dalam Rupiah)
     # gpt-4o-mini: $0.15/1M input tokens, $0.60/1M output tokens
     # Asumsi kurs Rp 17.000/USD
     price_idr = 17_000 * (total_input_tokens * 0.15 + total_output_tokens * 0.6) / 1_000_000
-    
+
     return {
         "answer": answer,
         "total_input_tokens": total_input_tokens,
@@ -475,7 +483,7 @@ def supervisor_node(state: SupervisorState):
     """Supervisor memutuskan agent mana yang dipanggil."""
     # Logic routing berdasarkan intent user
     last_message = state["messages"][-1].content.lower()
-    
+
     if any(word in last_message for word in ["cari", "film", "movie", "siapa", "apa"]):
         return {"next_agent": "movie_search"}
     else:
@@ -489,6 +497,7 @@ def supervisor_node(state: SupervisorState):
 ## 9. Menyusun Prompt yang Optimal
 
 Prompt yang baik adalah kunci agar agent:
+
 1. Tahu **kapan** menggunakan RAG tool
 2. Menjawab dengan format yang **konsisten**
 3. Menolak pertanyaan **di luar konteks** dengan sopan
@@ -502,7 +511,7 @@ Tugasmu adalah menjawab pertanyaan tentang film berdasarkan database IMDB Top 10
 ATURAN:
 1. Selalu gunakan tool `search_movie_info` untuk mencari informasi film sebelum menjawab.
 2. Jawab HANYA berdasarkan informasi yang ditemukan dari tool. Jangan mengarang fakta.
-3. Jika informasi tidak ditemukan di database, sampaikan dengan jujur: 
+3. Jika informasi tidak ditemukan di database, sampaikan dengan jujur:
    "Maaf, saya tidak menemukan informasi tersebut di database."
 4. Untuk pertanyaan yang tidak berkaitan dengan film, tolak dengan sopan.
 5. Sertakan detail seperti: judul, tahun, genre, rating, sutradara, dan bintang bila relevan.
@@ -531,8 +540,8 @@ ATURAN:
 6. Jaga konteks percakapan — jika user melanjutkan diskusi tentang kandidat sebelumnya, ingat konteksnya.
 
 Kamu memiliki akses ke resume dari kategori:
-HR, Designer, IT, Teacher, Advocate, Business-Development, Healthcare, Fitness, 
-Agriculture, BPO, Sales, Consultant, Digital-Media, Automobile, Chef, Finance, 
+HR, Designer, IT, Teacher, Advocate, Business-Development, Healthcare, Fitness,
+Agriculture, BPO, Sales, Consultant, Digital-Media, Automobile, Chef, Finance,
 Apparel, Engineering, Accountant, Construction, Public-Relations, Banking, Arts, Aviation
 """
 ```
@@ -585,19 +594,19 @@ st.caption("Tanya apa saja tentang 1000 film terbaik versi IMDB!")
 with st.sidebar:
     st.header("ℹ️ Tentang CineBot")
     st.markdown("""
-    CineBot menggunakan teknologi RAG (Retrieval-Augmented Generation) 
+    CineBot menggunakan teknologi RAG (Retrieval-Augmented Generation)
     untuk menjawab pertanyaan berdasarkan database IMDB Top 1000.
-    
+
     **Contoh pertanyaan:**
     - Film action terbaik dari tahun 2000-an?
     - Siapa sutradara film The Dark Knight?
     - Rekomendasikan film dengan rating di atas 9.0
     """)
-    
+
     if st.button("🗑️ Reset Chat"):
         st.session_state.messages = []
         st.rerun()
-    
+
     st.divider()
     st.markdown("**Dibuat dengan:**")
     st.markdown("- LangChain + LangGraph")
@@ -618,32 +627,32 @@ for message in st.session_state.messages:
 if prompt := st.chat_input("Tanya tentang film..."):
     # Ambil history untuk dikirim ke agent (max 6 pesan = 3 percakapan)
     chat_history = st.session_state.messages[-6:]
-    
+
     # Tampilkan pesan user
     with st.chat_message("Human"):
         st.markdown(prompt)
     st.session_state.messages.append({"role": "Human", "content": prompt})
-    
+
     # Panggil agent dan tampilkan jawaban
     with st.chat_message("AI"):
         with st.spinner("Sedang mencari informasi..."):
             response = chat_agent(prompt, chat_history)
-        
+
         answer = response["answer"]
         st.markdown(answer)
         st.session_state.messages.append({"role": "AI", "content": answer})
-    
+
     # Expander: bukti RAG (dokumen yang diambil)
     if response["tool_messages"]:
         with st.expander("📚 Dokumen yang Diambil dari Vector DB (RAG)", expanded=False):
             for i, doc in enumerate(response["tool_messages"], 1):
                 st.text(f"[Dokumen {i}]\n{doc[:500]}...")
-    
+
     # Expander: chat history
     with st.expander("💬 Chat History", expanded=False):
         for msg in chat_history:
             st.text(f"{msg['role']}: {msg['content'][:200]}")
-    
+
     # Expander: usage details
     with st.expander("📊 Usage Details", expanded=False):
         col1, col2, col3 = st.columns(3)
@@ -698,6 +707,7 @@ git push -u origin main
 ```
 
 **3. Deploy di Streamlit Cloud:**
+
 1. Buka https://share.streamlit.io/
 2. Login dengan akun GitHub
 3. Klik **"New app"**
@@ -721,6 +731,7 @@ Setelah deploy, kamu mendapatkan URL publik seperti:
 Sebelum submit, pastikan semua item ini terpenuhi:
 
 ### Teknis
+
 - [ ] Vector database sudah terisi data (upload berhasil)
 - [ ] RAG tool berfungsi (agent berhasil memanggil tool)
 - [ ] Agent bisa menjawab pertanyaan berdasarkan data di Qdrant (bukan hallusinasi)
@@ -731,6 +742,7 @@ Sebelum submit, pastikan semua item ini terpenuhi:
 - [ ] Aplikasi berhasil di-deploy di Streamlit Cloud dengan link publik
 
 ### Submission
+
 - [ ] Video penjelasan sudah direkam (maks 15 menit, kamera aktif)
 - [ ] Video di-upload ke YouTube/Google Drive/Dropbox dengan akses publik
 - [ ] Kode di-upload ke GitHub
@@ -747,11 +759,13 @@ Sebelum submit, pastikan semua item ini terpenuhi:
 Nilai 75 adalah basis minimum (mengikuti contoh). Untuk nilai lebih tinggi:
 
 ### Vector Database (melebihi minimum)
+
 - Tambahkan **filtering metadata** saat retrieve (misal: filter by genre, year, category)
 - Gunakan **hybrid search** (kombinasi keyword + semantic)
 - Upload lebih banyak data atau data yang lebih kaya
 
 ### RAG Tool (melebihi minimum)
+
 - Buat **lebih dari 1 tool** dengan fungsi berbeda:
   - `search_by_genre()` — mencari film berdasarkan genre
   - `get_top_rated()` — mengambil film dengan rating tertinggi
@@ -759,16 +773,19 @@ Nilai 75 adalah basis minimum (mengikuti contoh). Untuk nilai lebih tinggi:
 - Tambahkan **reranking** untuk meningkatkan akurasi
 
 ### Agent (melebihi minimum)
+
 - Implementasi **multi-agent** (supervisor + sub-agents)
 - Tambahkan **state management** yang lebih kompleks dengan LangGraph
 - Gunakan **memory** jangka panjang (bukan hanya session)
 
 ### Prompt (melebihi minimum)
+
 - Prompt dengan **few-shot examples** (contoh Q&A di dalam prompt)
 - Prompt dengan **chain-of-thought** (minta agent berpikir step-by-step)
 - Tambahkan **guardrails** untuk menolak pertanyaan berbahaya
 
 ### Streamlit (melebihi minimum)
+
 - Tampilan UI yang menarik dengan custom CSS
 - Tambahkan **fitur filter/pencarian** langsung di UI
 - Visualisasi data (chart rating, distribusi genre, dll)
