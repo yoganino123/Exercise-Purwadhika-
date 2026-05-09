@@ -6,3 +6,5 @@ langchain-core
 python-dotenv
 openai
 qdrant-client
+langgraph
+pandas
