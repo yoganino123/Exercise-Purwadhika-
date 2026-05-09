@@ -1,4 +1,5 @@
 import os
+from typing import Any
 
 import streamlit as st
 from dotenv import load_dotenv
@@ -278,33 +279,120 @@ qdrant = QdrantVectorStore.from_existing_collection(
 	api_key=QDRANT_API_KEY,
 )
 
+KNOWN_CATEGORIES = {
+	"hr": "HR",
+	"designer": "Designer",
+	"it": "IT",
+	"teacher": "Teacher",
+	"advocate": "Advocate",
+	"business-development": "Business-Development",
+	"business development": "Business-Development",
+	"healthcare": "Healthcare",
+	"fitness": "Fitness",
+	"agriculture": "Agriculture",
+	"bpo": "BPO",
+	"sales": "Sales",
+	"consultant": "Consultant",
+	"digital-media": "Digital-Media",
+	"digital media": "Digital-Media",
+	"automobile": "Automobile",
+	"chef": "Chef",
+	"finance": "Finance",
+	"apparel": "Apparel",
+	"engineering": "Engineering",
+	"accountant": "Accountant",
+	"construction": "Construction",
+	"public-relations": "Public-Relations",
+	"public relations": "Public-Relations",
+	"banking": "Banking",
+	"arts": "Arts",
+	"aviation": "Aviation",
+}
+
+
+def extract_category_from_text(text: str) -> str | None:
+	lower_text = text.lower()
+	for key, normalized in KNOWN_CATEGORIES.items():
+		if key in lower_text:
+			return normalized
+	return None
+
+
+def category_filter(category: str) -> dict[str, Any]:
+	return {
+		"must": [
+			{
+				"key": "category",
+				"match": {"value": category},
+			}
+		]
+	}
+
+
+def run_similarity_search(query: str, k: int = 5, category: str | None = None):
+	if category:
+		try:
+			return qdrant.similarity_search(query, k=k, filter=category_filter(category))
+		except Exception:
+			# Fallback keeps app working if backend rejects filter shape.
+			return qdrant.similarity_search(query, k=k)
+	return qdrant.similarity_search(query, k=k)
+
+
+def format_docs(docs, title: str | None = None) -> str:
+	if not docs:
+		return "Tidak ada resume relevan yang ditemukan."
+
+	parts = []
+	if title:
+		parts.append(title)
+
+	for doc in docs:
+		parts.append(doc.page_content)
+
+	return "\n\n---\n\n".join(parts)
+
 
 @tool
 def search_resume(query: str) -> str:
-	"""Gunakan tool ini untuk mencari resume relevan berdasarkan pertanyaan user."""
-	results = qdrant.similarity_search(query, k=5)
-	if not results:
-		return "Tidak ada resume relevan yang ditemukan."
+	"""Cari resume relevan berdasarkan pertanyaan user. Otomatis gunakan filter category jika query menyebut kategori seperti IT, HR, Finance, dll."""
+	detected_category = extract_category_from_text(query)
+	results = run_similarity_search(query, k=5, category=detected_category)
+	if detected_category:
+		return format_docs(results, title=f"[Filtered Category: {detected_category}]")
+	return format_docs(results)
 
-	output = []
-	for doc in results:
-		output.append(doc.page_content)
-	return "\n\n---\n\n".join(output)
+
+@tool
+def shortlist_candidates(category: str, focus: str) -> str:
+	"""Buat shortlist kandidat dari category tertentu. Gunakan tool ini ketika user minta rekomendasi per kategori. Input category contoh: IT, HR, Finance. Input focus contoh: python, data analyst, communication."""
+	normalized_category = KNOWN_CATEGORIES.get(category.lower(), category)
+	results = run_similarity_search(focus, k=3, category=normalized_category)
+	if not results:
+		return f"Tidak ditemukan kandidat untuk category {normalized_category}."
+
+	shortlist = [f"Shortlist untuk category {normalized_category} (focus: {focus}):"]
+	for i, doc in enumerate(results, 1):
+		snippet = doc.page_content.replace("\n", " ")[:420]
+		shortlist.append(f"{i}. {snippet}...")
+
+	return "\n".join(shortlist)
 
 
 llm = ChatOpenAI(model="gpt-4o-mini", api_key=OPENAI_API_KEY, temperature=0.3)
-agent = create_react_agent(model=llm, tools=[search_resume])
+agent = create_react_agent(model=llm, tools=[search_resume, shortlist_candidates])
 
 SYSTEM_PROMPT = """Kamu adalah asisten HR bernama ResumeBot.
 Tugasmu membantu user mencari dan menganalisis resume dari vector database.
 
 ATURAN:
 1. Selalu gunakan tool search_resume sebelum menjawab.
-2. Jawab berdasarkan hasil tool, jangan mengarang.
-3. Jika data tidak ditemukan, katakan dengan jujur.
-4. Jika pertanyaan di luar topik resume/karier, tolak dengan sopan.
-5. Gunakan bahasa Indonesia yang ringkas dan jelas.
-6. Jika ada konteks dari percakapan sebelumnya, gunakan chat history yang tersedia.
+2. Jika user meminta rekomendasi kandidat per kategori, gunakan tool shortlist_candidates.
+3. Jawab berdasarkan hasil tool, jangan mengarang.
+4. Jika data tidak ditemukan, katakan dengan jujur.
+5. Jika pertanyaan di luar topik resume/karier, tolak dengan sopan.
+6. Gunakan bahasa Indonesia yang ringkas dan jelas.
+7. Jika ada konteks dari percakapan sebelumnya, gunakan chat history yang tersedia.
 """
 
 
