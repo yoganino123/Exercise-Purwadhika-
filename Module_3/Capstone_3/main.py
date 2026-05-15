@@ -9,10 +9,12 @@ from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_qdrant import QdrantVectorStore
 from langgraph.prebuilt import create_react_agent
 
+# Muat variabel environment lokal (.env) untuk mode development.
 load_dotenv()
 
 
 def apply_custom_ui() -> None:
+	# Styling UI untuk memperkuat tampilan profesional saat demo video.
 	st.markdown(
 		"""
 		<style>
@@ -243,6 +245,7 @@ def apply_custom_ui() -> None:
 
 def get_config_value(name: str) -> str | None:
 	"""Try Streamlit secrets first, then fallback to local .env."""
+	# Prioritaskan Streamlit secrets (deploy), lalu fallback ke .env (lokal).
 	try:
 		return st.secrets[name]
 	except Exception:
@@ -254,6 +257,7 @@ OPENAI_API_KEY = get_config_value("OPENAI_API_KEY")
 QDRANT_URL = get_config_value("QDRANT_URL")
 QDRANT_API_KEY = get_config_value("QDRANT_API_KEY")
 
+# Validasi environment agar aplikasi gagal lebih awal dengan pesan yang jelas.
 REQUIRED_VARS = {
 	"OPENAI_API_KEY": OPENAI_API_KEY,
 	"QDRANT_URL": QDRANT_URL,
@@ -269,9 +273,12 @@ if missing_vars:
 	)
 	st.stop()
 
+# Komponen embedding untuk mengubah query/resume menjadi vektor semantik.
 embeddings = OpenAIEmbeddings(model="text-embedding-3-small", api_key=OPENAI_API_KEY)
 
+# Collection Qdrant yang digunakan untuk retrieval resume.
 collection_name = "resumes"
+# Koneksi ke koleksi yang sudah ada (hasil ingestion dari upload_data.py).
 qdrant = QdrantVectorStore.from_existing_collection(
 	embedding=embeddings,
 	collection_name=collection_name,
@@ -279,6 +286,8 @@ qdrant = QdrantVectorStore.from_existing_collection(
 	api_key=QDRANT_API_KEY,
 )
 
+# Kamus normalisasi kategori agar query user (mis. "business development")
+# tetap cocok dengan label metadata category pada dataset.
 KNOWN_CATEGORIES = {
 	"hr": "HR",
 	"designer": "Designer",
@@ -311,6 +320,7 @@ KNOWN_CATEGORIES = {
 
 
 def extract_category_from_text(text: str) -> str | None:
+	# Deteksi kategori dari teks pertanyaan user untuk filtering metadata.
 	lower_text = text.lower()
 	for key, normalized in KNOWN_CATEGORIES.items():
 		if key in lower_text:
@@ -319,6 +329,7 @@ def extract_category_from_text(text: str) -> str | None:
 
 
 def category_filter(category: str) -> dict[str, Any]:
+	# Bentuk filter Qdrant berbasis metadata category.
 	return {
 		"must": [
 			{
@@ -330,6 +341,7 @@ def category_filter(category: str) -> dict[str, Any]:
 
 
 def run_similarity_search(query: str, k: int = 5, category: str | None = None):
+		# Retrieval utama RAG: semantic search dengan opsi filter category.
 	if category:
 		try:
 			return qdrant.similarity_search(query, k=k, filter=category_filter(category))
@@ -340,6 +352,7 @@ def run_similarity_search(query: str, k: int = 5, category: str | None = None):
 
 
 def format_docs(docs, title: str | None = None) -> str:
+		# Gabungkan dokumen retrieval menjadi teks konteks yang mudah dibaca LLM.
 	if not docs:
 		return "Tidak ada resume relevan yang ditemukan."
 
@@ -356,6 +369,7 @@ def format_docs(docs, title: str | None = None) -> str:
 @tool
 def search_resume(query: str) -> str:
 	"""Cari resume relevan berdasarkan pertanyaan user. Otomatis gunakan filter category jika query menyebut kategori seperti IT, HR, Finance, dll."""
+	# Tool utama untuk semua pertanyaan in-domain pada skenario demo.
 	detected_category = extract_category_from_text(query)
 	results = run_similarity_search(query, k=5, category=detected_category)
 	if detected_category:
@@ -366,6 +380,7 @@ def search_resume(query: str) -> str:
 @tool
 def shortlist_candidates(category: str, focus: str) -> str:
 	"""Buat shortlist kandidat dari category tertentu. Gunakan tool ini ketika user minta rekomendasi per kategori. Input category contoh: IT, HR, Finance. Input focus contoh: python, data analyst, communication."""
+	# Tool khusus saat user meminta shortlist kandidat berdasarkan kategori tertentu.
 	normalized_category = KNOWN_CATEGORIES.get(category.lower(), category)
 	results = run_similarity_search(focus, k=3, category=normalized_category)
 	if not results:
@@ -373,15 +388,19 @@ def shortlist_candidates(category: str, focus: str) -> str:
 
 	shortlist = [f"Shortlist untuk category {normalized_category} (focus: {focus}):"]
 	for i, doc in enumerate(results, 1):
+		# Snippet dipotong agar output ringkas saat tampil di chat.
 		snippet = doc.page_content.replace("\n", " ")[:420]
 		shortlist.append(f"{i}. {snippet}...")
 
 	return "\n".join(shortlist)
 
 
+# LLM reasoning layer untuk agent.
 llm = ChatOpenAI(model="gpt-4o-mini", api_key=OPENAI_API_KEY, temperature=0.3)
+# Agent ReAct: memilih kapan memanggil tools lalu menyusun jawaban final.
 agent = create_react_agent(model=llm, tools=[search_resume, shortlist_candidates])
 
+# System prompt sebagai guardrail agar jawaban tetap berbasis retrieval.
 SYSTEM_PROMPT = """Kamu adalah asisten HR bernama ResumeBot.
 Tugasmu membantu user mencari dan menganalisis resume dari vector database.
 
@@ -397,6 +416,7 @@ ATURAN:
 
 
 def chat_agent(user_question: str, chat_history: list[dict]) -> dict:
+	# Bangun urutan pesan: system -> riwayat pendek -> pertanyaan user terbaru.
 	messages = [SystemMessage(content=SYSTEM_PROMPT)]
 
 	# Keep at least the latest 3 turns (6 messages)
@@ -408,6 +428,7 @@ def chat_agent(user_question: str, chat_history: list[dict]) -> dict:
 
 	messages.append(HumanMessage(content=user_question))
 
+	# Eksekusi agent (reasoning + tool calling) dalam satu invoke.
 	result = agent.invoke({"messages": messages})
 	answer = result["messages"][-1].content
 
@@ -415,6 +436,7 @@ def chat_agent(user_question: str, chat_history: list[dict]) -> dict:
 	total_output_tokens = 0
 	tool_messages = []
 
+	# Ambil statistik token dan jejak tool untuk transparansi di UI.
 	for message in result["messages"]:
 		if hasattr(message, "response_metadata"):
 			meta = message.response_metadata
@@ -440,14 +462,17 @@ def chat_agent(user_question: str, chat_history: list[dict]) -> dict:
 	}
 
 
+# Konfigurasi halaman utama Streamlit.
 st.set_page_config(
 	page_title="ResumeBot - Resume RAG Assistant",
 	page_icon="📄",
 	layout="wide",
 )
 
+# Terapkan gaya visual custom untuk kebutuhan presentasi.
 apply_custom_ui()
 
+# Hero section: ringkasan produk yang ditampilkan di awal demo.
 st.markdown(
 	"""
 	<div class="hero">
@@ -463,6 +488,7 @@ st.markdown(
 	unsafe_allow_html=True,
 )
 
+# Status cards untuk menjelaskan komponen model, embedding, dan mode kerja.
 status_col1, status_col2, status_col3 = st.columns(3)
 with status_col1:
 	st.markdown(
@@ -496,6 +522,7 @@ with status_col3:
 	)
 
 with st.sidebar:
+	# Sidebar berisi konteks penggunaan dan kontrol reset percakapan.
 	st.header("Workspace")
 	st.markdown(
 		"""
@@ -524,6 +551,7 @@ Gunakan pertanyaan yang jelas: role, skill, level, dan konteks kebutuhan bisnis.
 	st.divider()
 	st.caption("Collection aktif: resumes")
 
+# Simpan histori chat lintas interaksi pengguna selama sesi aktif.
 if "messages" not in st.session_state:
 	st.session_state.messages = []
 
@@ -532,15 +560,19 @@ st.markdown("<div style='margin-top: 0.7rem;'></div>", unsafe_allow_html=True)
 quick_col1, quick_col2, quick_col3 = st.columns(3)
 quick_prompt = None
 with quick_col1:
+	# Tombol cepat untuk skenario demo kategori IT + Python.
 	if st.button("Quick: IT Python", use_container_width=True):
 		quick_prompt = "Carikan kandidat kategori IT yang memiliki skill Python dan jelaskan alasan kecocokan."
 with quick_col2:
+	# Tombol cepat untuk skenario demo role Data Analyst.
 	if st.button("Quick: Data Analyst", use_container_width=True):
 		quick_prompt = "Cari kandidat yang cocok untuk posisi Data Analyst dan rangkum skill utamanya."
 with quick_col3:
+	# Tombol cepat untuk skenario demo ringkasan kandidat HR.
 	if st.button("Quick: HR Summary", use_container_width=True):
 		quick_prompt = "Ringkas 3 kandidat terbaik untuk role HR dalam format poin."
 
+# Render histori chat agar percakapan sebelumnya tetap terlihat (multi-turn).
 for message in st.session_state.messages:
 	display_role = "assistant"
 	if message["role"] in ["Human", "user"]:
@@ -548,11 +580,13 @@ for message in st.session_state.messages:
 	with st.chat_message(display_role):
 		st.markdown(message["content"])
 
+# Ambil prompt dari input chat atau quick prompt.
 prompt = st.chat_input("Tanyakan kandidat yang kamu cari...")
 if quick_prompt and not prompt:
 	prompt = quick_prompt
 
 if prompt:
+	# Batasi context history agar efisien tapi tetap nyambung (3 turn terakhir).
 	chat_history = st.session_state.messages[-6:]
 
 	with st.chat_message("user"):
@@ -562,6 +596,7 @@ if prompt:
 	with st.chat_message("assistant"):
 		with st.spinner("Mencari resume relevan..."):
 			try:
+				# Jalankan pipeline RAG untuk menghasilkan jawaban berbasis dokumen.
 				response = chat_agent(prompt, chat_history)
 			except Exception as err:
 				st.error(f"Terjadi error saat memproses query: {err}")
@@ -571,11 +606,13 @@ if prompt:
 		st.markdown(answer)
 		st.session_state.messages.append({"role": "assistant", "content": answer})
 
+	# Bukti retrieval untuk kebutuhan auditability saat presentasi.
 	if response["tool_messages"]:
 		with st.expander("Dokumen yang diambil dari Vector DB", expanded=False):
 			for i, doc in enumerate(response["tool_messages"], 1):
 				st.text(f"[Dokumen {i}]\n{doc[:700]}...")
 
+	# Transparansi biaya dan token usage untuk evaluasi performa model.
 	with st.expander("Usage Details", expanded=False):
 		col1, col2, col3 = st.columns(3)
 		with col1:
