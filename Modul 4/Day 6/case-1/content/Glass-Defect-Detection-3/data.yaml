@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 2
+names: ['defect', 'glass']
+
+roboflow:
+  workspace: capjamesg
+  project: glass-defect-detection-fvbcu
+  version: 3
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/capjamesg/glass-defect-detection-fvbcu/dataset/3
