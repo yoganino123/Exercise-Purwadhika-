@@ -94,6 +94,22 @@ Catatan:
 streamlit run app.py
 ```
 
+## Deploy di Streamlit Cloud
+
+Karena folder `artifacts/` ada di `.gitignore`, file model biasanya tidak ikut ke repo saat deploy.
+
+Set salah satu environment variable berikut pada Streamlit Cloud:
+
+- `MODEL_WEIGHTS_URL`: direct URL ke file `best.pt` (app akan auto-download ke `artifacts/best.pt` saat startup)
+- `WEIGHTS_PATH`: path lokal model jika Anda menyediakan file model dengan cara lain
+
+Contoh:
+
+```text
+MODEL_WEIGHTS_URL=https://your-host-or-drive-direct-link/best.pt
+WEIGHTS_PATH=artifacts/best.pt
+```
+
 ## Minimum Features Implemented
 
 - Load model object detection hasil training

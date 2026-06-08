@@ -7,7 +7,7 @@ import pandas as pd
 import streamlit as st
 from PIL import Image
 
-from src.config import DEFAULT_WEIGHTS, EXAMPLE_IMAGE
+from src.config import DEFAULT_WEIGHTS, EXAMPLE_IMAGE, resolve_weights_path
 from src.predictor import SafetyPredictor
 
 
@@ -34,7 +34,10 @@ st.caption(
 
 with st.sidebar:
     st.header("Inference Settings")
-    weights_path = st.text_input("Path model weights (.pt)", value=str(DEFAULT_WEIGHTS))
+    resolved_weights_path, weights_note = resolve_weights_path()
+    weights_path = st.text_input("Path model weights (.pt)", value=str(resolved_weights_path))
+    if weights_note:
+        st.caption(weights_note)
     conf_threshold = st.slider("Confidence threshold", min_value=0.05, max_value=0.95, value=0.25, step=0.05)
     iou_threshold = st.slider("IoU threshold", min_value=0.05, max_value=0.95, value=0.45, step=0.05)
     use_example = st.checkbox("Use sample image", value=True)
@@ -50,7 +53,18 @@ try:
     predictor = load_predictor(weights_path)
 except FileNotFoundError as error:
     st.error(str(error))
-    st.info("Jalankan train.py terlebih dulu agar file artifacts/best.pt tersedia.")
+    st.info(
+        "Untuk deploy Streamlit Cloud: set environment variable MODEL_WEIGHTS_URL (link direct .pt) "
+        "atau WEIGHTS_PATH ke lokasi model yang valid."
+    )
+    st.code(
+        "MODEL_WEIGHTS_URL=https://.../best.pt\nWEIGHTS_PATH=artifacts/best.pt",
+        language="bash",
+    )
+    st.info(
+        f"Default project path yang dicoba: {DEFAULT_WEIGHTS}. "
+        "Jika model tidak dipush ke repo (misalnya karena .gitignore), aplikasi tidak bisa load model saat deploy."
+    )
     st.stop()
 
 prediction = predictor.predict(np.array(image), conf_threshold=conf_threshold, iou_threshold=iou_threshold)
