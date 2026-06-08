@@ -1,0 +1,1 @@
+"""Construction safety project package."""

@@ -1,0 +1,28 @@
+# Python cache
+**/__pycache__/
+*.py[cod]
+
+# Virtual environments
+.venv/
+**/.venv/
+
+# Notebook checkpoints
+**/.ipynb_checkpoints/
+
+# Streamlit local config/cache
+**/.streamlit/
+
+# Training outputs and model artifacts
+**/runs/
+**/artifacts/
+*.pt
+*.pth
+*.onnx
+
+# Local dataset copies (large files)
+construction safety.v1i.yolov12/
+construction safety.v1i.yolov12.zip
+
+# Temporary Office files
+~$*.docx
+~$*.xlsx
