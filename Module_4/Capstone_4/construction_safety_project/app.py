@@ -1,17 +1,19 @@
 from __future__ import annotations
 
-from pathlib import Path
-
 import numpy as np
 import pandas as pd
 import streamlit as st
 from PIL import Image
 
-from src.config import DEFAULT_WEIGHTS, EXAMPLE_IMAGE, resolve_weights_path
+from src.config import resolve_weights_path
 from src.predictor import SafetyPredictor
 
 
 st.set_page_config(page_title="Construction Safety Monitor", page_icon="⛑", layout="wide")
+
+
+CONF_THRESHOLD = 0.25
+IOU_THRESHOLD = 0.45
 
 
 @st.cache_resource(show_spinner=False)
@@ -19,11 +21,9 @@ def load_predictor(weights_path: str) -> SafetyPredictor:
     return SafetyPredictor(weights_path)
 
 
-def load_selected_image(uploaded_file, use_example: bool) -> Image.Image | None:
+def load_selected_image(uploaded_file) -> Image.Image | None:
     if uploaded_file is not None:
         return Image.open(uploaded_file).convert("RGB")
-    if use_example and EXAMPLE_IMAGE.exists():
-        return Image.open(EXAMPLE_IMAGE).convert("RGB")
     return None
 
 
@@ -32,21 +32,14 @@ st.caption(
     "Deteksi pekerja konstruksi dan analisis kepatuhan alat pelindung diri berdasarkan model object detection."
 )
 
-with st.sidebar:
-    st.header("Inference Settings")
-    resolved_weights_path, weights_note = resolve_weights_path()
-    weights_path = st.text_input("Path model weights (.pt)", value=str(resolved_weights_path))
-    if weights_note:
-        st.caption(weights_note)
-    conf_threshold = st.slider("Confidence threshold", min_value=0.05, max_value=0.95, value=0.25, step=0.05)
-    iou_threshold = st.slider("IoU threshold", min_value=0.05, max_value=0.95, value=0.45, step=0.05)
-    use_example = st.checkbox("Use sample image", value=True)
+resolved_weights_path, _weights_note = resolve_weights_path()
+weights_path = str(resolved_weights_path)
 
 uploaded_file = st.file_uploader("Upload gambar pekerja konstruksi", type=["jpg", "jpeg", "png"])
-image = load_selected_image(uploaded_file, use_example)
+image = load_selected_image(uploaded_file)
 
 if image is None:
-    st.info("Upload gambar atau aktifkan sample image untuk mencoba aplikasi.")
+    st.info("Silakan upload gambar terlebih dahulu untuk menjalankan analisis.")
     st.stop()
 
 try:
@@ -62,12 +55,12 @@ except FileNotFoundError as error:
         language="bash",
     )
     st.info(
-        f"Default project path yang dicoba: {DEFAULT_WEIGHTS}. "
+        f"Default project path yang dicoba: {resolved_weights_path}. "
         "Jika model tidak dipush ke repo (misalnya karena .gitignore), aplikasi tidak bisa load model saat deploy."
     )
     st.stop()
 
-prediction = predictor.predict(np.array(image), conf_threshold=conf_threshold, iou_threshold=iou_threshold)
+prediction = predictor.predict(np.array(image), conf_threshold=CONF_THRESHOLD, iou_threshold=IOU_THRESHOLD)
 analysis = prediction["analysis"]
 
 left_col, right_col = st.columns([1.25, 1])

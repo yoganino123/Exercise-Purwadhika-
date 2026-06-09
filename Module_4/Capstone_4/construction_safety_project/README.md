@@ -40,6 +40,35 @@ Dataset sudah dalam format YOLO sehingga bisa langsung dipakai oleh Ultralytics.
 pip install -r requirements.txt
 ```
 
+## Local Environment (.env)
+
+Semua konfigurasi link model dan nilai sensitif disimpan di `.env`.
+
+1. Copy file contoh:
+
+```bash
+cp .env.example .env
+```
+
+Untuk Windows PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+2. Isi nilai di `.env`:
+
+```text
+MODEL_WEIGHTS_URL=https://drive.google.com/uc?export=download&id=1k-Fwbw5Kmeq6MJRfDNrR8mVnGvPEor4D
+MODEL_FORCE_REFRESH=0
+```
+
+3. Jalankan app:
+
+```bash
+streamlit run app.py
+```
+
 ## Training
 
 ```bash
@@ -98,16 +127,42 @@ streamlit run app.py
 
 Karena folder `artifacts/` ada di `.gitignore`, file model biasanya tidak ikut ke repo saat deploy.
 
-Set salah satu environment variable berikut pada Streamlit Cloud:
+Model akan diunduh ke `artifacts/best.pt` saat startup berdasarkan value dari Streamlit Secrets.
 
-- `MODEL_WEIGHTS_URL`: direct URL ke file `best.pt` (app akan auto-download ke `artifacts/best.pt` saat startup)
-- `WEIGHTS_PATH`: path lokal model jika Anda menyediakan file model dengan cara lain
+### Tutorial Deploy Streamlit Cloud
+
+1. Push project ke GitHub.
+2. Buka https://share.streamlit.io lalu sign in.
+3. Klik **New app**.
+4. Pilih repository, branch, dan file utama `app.py`.
+5. Buka menu **Advanced settings** > **Secrets**.
+6. Isi secrets berikut:
+
+```toml
+MODEL_WEIGHTS_URL = "https://drive.google.com/uc?export=download&id=1k-Fwbw5Kmeq6MJRfDNrR8mVnGvPEor4D"
+MODEL_FORCE_REFRESH = "0"
+```
+
+7. Klik **Deploy**.
+8. Tunggu proses install dependency dan startup model selesai.
+9. Jika ingin update model dari Drive, ubah:
+
+```toml
+MODEL_FORCE_REFRESH = "1"
+```
+
+Lalu reboot app, setelah model terbaru terunduh kembalikan lagi ke `"0"`.
+
+Set environment variable berikut pada Streamlit Cloud (optional override):
+
+- `MODEL_WEIGHTS_URL`: override URL model .pt
+- `MODEL_FORCE_REFRESH`: set `1` jika ingin paksa download ulang tiap startup
 
 Contoh:
 
 ```text
-MODEL_WEIGHTS_URL=https://your-host-or-drive-direct-link/best.pt
-WEIGHTS_PATH=artifacts/best.pt
+MODEL_WEIGHTS_URL=https://drive.google.com/uc?export=download&id=1k-Fwbw5Kmeq6MJRfDNrR8mVnGvPEor4D
+MODEL_FORCE_REFRESH=0
 ```
 
 ## Minimum Features Implemented
