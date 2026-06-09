@@ -1,0 +1,145 @@
+{
+  "name": "mini-chatbot",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "initialMessages": "Hi there! 👋\nMy name is Purwa-AI. How can I assist you today?",
+        "options": {
+          "responseMode": "responseNodes"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "3ab3c993-4026-4f7d-95e4-ec956ca4e156",
+      "name": "When chat message received",
+      "webhookId": "95d65e4e-96d1-40d5-a76a-2dea057fac51"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-3.1-flash-lite",
+          "mode": "list",
+          "cachedResultName": "models/gemini-3.1-flash-lite"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "={{ $json.chatInput }}"
+            }
+          ]
+        },
+        "simplify": false,
+        "builtInTools": {},
+        "options": {
+          "systemMessage": "Kamu adalah AI Assistant yang ramah dan ceria. Selalu gunakan bahasa yang mudah dipahami dalam menjawab pertanyaan. Gunakan emoji apabila diperlukan."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "bdb0f38b-2280-422c-8bd2-a2e335b29184",
+      "name": "Message a model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "8eXZebZMRv8XXgU6",
+          "name": "Google Gemini(PaLM) Api Fikri"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "49648d2d-47c9-4a1a-9cef-48818d09fd7b",
+              "name": "answer",
+              "value": "={{ $json.candidates[0].content.parts[0].text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        560,
+        0
+      ],
+      "id": "fc046f76-4d9d-44d1-84fd-dad02e24e32c",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "message": "={{ $json.answer }}",
+        "waitUserReply": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chat",
+      "typeVersion": 1,
+      "position": [
+        768,
+        0
+      ],
+      "id": "7250432b-02a5-4b08-8f02-095862968a20",
+      "name": "Respond to Chat"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Respond to Chat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "57da63a2-d0d1-467b-88f4-cfedc03fdb41",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c2d191aa5a7765d167f54affc1e1841d88547fed12ee32eae8a4c95363c5fb72"
+  },
+  "id": "aF4EJBuhbzguSukr",
+  "tags": []
+}
